@@ -18,7 +18,7 @@ public class Node {
             this.state[i] = state[i];
         }
         this.distance = 0;
-        this.path = new ArrayList<String>();
+        this.path = new ArrayList<>();
     }
 
     public Node(Node node,int x,int y,String direction){
@@ -53,7 +53,13 @@ public class Node {
     public int manhattan(){
         int sum = 0;
         for(int i=0;i<size;i++){
-            if(state[i]!=0) sum+=Math.abs(state[i]-i-1);
+            if(state[i]!=0){
+                int currentX = i / ssize;
+                int currentY = i % ssize;
+                int goalX = (state[i]-1) / ssize;
+                int goalY = (state[i]-1) % ssize;
+                sum+= Math.abs(currentX-goalX) + Math.abs((currentY-goalY));
+            }
         }
         return sum;
     }
@@ -67,22 +73,29 @@ public class Node {
 
     public Node moveRight(){
         if(zeroIndex % ssize != 0){
-            return new Node(this,zeroIndex-1,zeroIndex,"right");
-        }
-        return null;
-    }
-
-    public Node moveUp(){
-        if(zeroIndex > ssize){
-            return new Node(this,zeroIndex,zeroIndex-ssize,"up");
+            return new Node(this,zeroIndex,zeroIndex-1,"right");
         }
         return null;
     }
 
     public Node moveDown(){
-        if(zeroIndex < size-ssize){
-            return new Node(this,zeroIndex,zeroIndex+ssize,"down");
+        if(zeroIndex > ssize){
+            return new Node(this,zeroIndex,zeroIndex-ssize,"down");
         }
         return null;
     }
+
+    public Node moveUp(){
+        if(zeroIndex < size-ssize){
+            return new Node(this,zeroIndex,zeroIndex+ssize,"up");
+        }
+        return null;
+    }
+
+    public void printPath(){
+        for(String direction: path){
+            System.out.println(direction);
+        }
+    }
+
 }

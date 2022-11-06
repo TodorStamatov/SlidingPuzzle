@@ -1,108 +1,69 @@
 import java.util.*;
 
-import static java.util.Objects.isNull;
-
 public class Main {
-
     public static boolean checkVisited(List<Node> visited, Node node){
-        boolean found = false;
         for (Node value : visited) {
-            int[] state = value.state;
-            boolean same = true;
-            for (int j = 0; j < state.length; j++) {
-                if (state[j] != node.state[j]) {
-                    same = false;
-                    break;
-                }
-            }
-            if (same) {
-                found = true;
-                break;
-            }
+            if(Arrays.equals(value.state,node.state)) return true;
         }
-        return found;
+        return false;
     }
 
-    public static int IDA(Node initialState){
-        int threshold = initialState.manhattan() + initialState.distance;
+    public static void IDA(Node initialState){
+        int threshold = initialState.manhattan();
         while(true){
-            System.out.println("Threshold:"+ threshold);
-            List<Node> visited = new ArrayList<Node>();
-            int temp = search(initialState, threshold, visited);
-            if(temp <= threshold){ // if solution with less cost than threshold is found
-                return temp;
-            }else{ // update threshold
-                if(temp == Integer.MAX_VALUE){
-                    System.out.println("UNSOLVED");
-                    return -1;
+            List<Node> visited = new ArrayList<>();
+            HashMap<Integer, List<String>> temp = search(initialState, threshold, visited);
+            if((int)temp.keySet().toArray()[0] <= threshold){ // if solution with less cost than threshold is found
+                System.out.println(temp.keySet().toArray()[0]);
+                List<String> path = (List<String>) temp.values().toArray()[0];
+                for(String direction: path){
+                    System.out.println(direction);
                 }
-                threshold = temp;
+                break;
+            }else{ // update threshold
+                if((int)temp.keySet().toArray()[0] == Integer.MAX_VALUE){
+                    System.out.println("UNSOLVED");
+                }
+                threshold = (int)temp.keySet().toArray()[0];
             }
         }
     }
 
-    public static int search(Node node, int threshold, List<Node> visited){
-//        node.print();
-//        System.out.println();
-//        System.out.println("Distance:"+ node.distance);
-//        System.out.println("Path:"+ node.path);
-//        System.out.println("Manhatan:"+ node.manhattan());
-//        System.out.println("Visited size:" + visited.size());
-//        System.out.println("------------------------------------");
+    public static HashMap<Integer,List<String>> search(Node node, int threshold, List<Node> visited){
         visited.add(node);
         int f = node.manhattan() + node.distance;
+
+        HashMap<Integer, List<String>> result = new HashMap<>();
         if(f > threshold){ // if distance to this node is more than threshold and puzzle is not solved
-            return f;
+            result.put(f,null);
+            return result;
         }
         if(node.manhattan() == 0){ // solution is found
-            System.out.println(node.path);
-            return node.distance;
+            result.put(node.distance,node.path);
+            return result;
         }
-        int min = Integer.MAX_VALUE;
+
+        HashMap<Integer,List<String>> min = new HashMap<>();
+        min.put(Integer.MAX_VALUE,null);
         Node left = node.moveLeft();
         Node right = node.moveRight();
         Node up = node.moveUp();
         Node down = node.moveDown();
+        List<Node> neighbours = new ArrayList<>();
+        Collections.addAll(neighbours,left,right,up,down);
 
-        if(!isNull(left) && !checkVisited(visited,left)){
-            int temp = search(left,threshold,visited);
-            if(temp <= threshold){
-                return temp;
-            }
-            if(temp < min){
-                min = temp;
-            }
-        }
-        if(!isNull(right) && !checkVisited(visited,right)){
-            int temp = search(right,threshold,visited);
-
-            if(temp <= threshold){
-                return temp;
-            }
-            if(temp < min){
-                min = temp;
+        for(Node neighbour: neighbours){
+            if(neighbour != null && !checkVisited(visited,neighbour)){
+                HashMap<Integer,List<String>> temp = search(neighbour,threshold,visited);
+                if((int)temp.keySet().toArray()[0] <= threshold){
+                    return temp;
+                }
+                if((int)temp.keySet().toArray()[0] < (int)min.keySet().toArray()[0]){
+                    min = temp;
+                }
             }
         }
 
-        if(!isNull(up) && !checkVisited(visited,up)){
-            int temp = search(up,threshold,visited);
-            if(temp <= threshold){
-                return temp;
-            }
-            if(temp < min){
-                min = temp;
-            }
-        }
-
-        if(!isNull(down) && !checkVisited(visited,down)){
-            int temp = search(down,threshold,visited);
-            if(temp <= threshold){
-                return temp;
-            }
-            if(temp < min){
-                min = temp;
-            }
-        }
         visited.remove(visited.size()-1);
         return min;
     }
@@ -124,6 +85,9 @@ public class Main {
         }
 
         Node node = new Node(numbers,size,zeroIndex);
-        System.out.println(IDA(node));
+        long start = System.currentTimeMillis();
+        IDA(node);
+        long end = System.currentTimeMillis();
+        System.out.println((end-start)/1000.0);
     }
 }
